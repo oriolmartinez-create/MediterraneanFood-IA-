@@ -1,0 +1,6 @@
+{
+  "name": "MediterraneanFood IA",
+  "description": "Tu asistente inteligente de cocina mediterránea y saludable. Encuentra y cocina recetas nutritivas usando únicamente los ingredientes que tienes en casa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
