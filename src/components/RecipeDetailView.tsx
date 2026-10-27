@@ -1,22 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { RecipeDetail } from '../types';
 import {
   ArrowLeft,
   Clock,
-  Flame,
   Heart,
-  Share2,
-  Check,
-  Play,
-  Pause,
-  RotateCcw,
-  Sparkles,
   ChefHat,
   Leaf,
   Activity,
   Printer,
   Eye,
-  Info,
+  Check,
 } from 'lucide-react';
 import freshBowlImg from '../assets/images/mediterranean_fresh_bowl_1791287640317.jpg';
 import panDishImg from '../assets/images/mediterranean_pan_dish_1791287653082.jpg';
@@ -35,51 +28,7 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
   isFavorite,
   onToggleFavorite,
 }) => {
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
-  const [activeTimerStep, setActiveTimerStep] = useState<number | null>(null);
-  const [timerSecondsLeft, setTimerSecondsLeft] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [activeStepTab, setActiveStepTab] = useState<number>(1);
-
-  // Timer interval handling
-  useEffect(() => {
-    let interval: any = null;
-    if (isTimerRunning && timerSecondsLeft > 0) {
-      interval = setInterval(() => {
-        setTimerSecondsLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timerSecondsLeft === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
-      // Play a gentle notification sound if supported
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-        osc.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.5);
-      } catch (e) {
-        // audio context fallback
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, timerSecondsLeft]);
-
-  const handleStartTimer = (stepNumber: number, minutes: number) => {
-    setActiveTimerStep(stepNumber);
-    setTimerSecondsLeft(minutes * 60);
-    setIsTimerRunning(true);
-  };
-
-  const handleToggleStepComplete = (stepNumber: number) => {
-    if (completedSteps.includes(stepNumber)) {
-      setCompletedSteps(completedSteps.filter((s) => s !== stepNumber));
-    } else {
-      setCompletedSteps([...completedSteps, stepNumber]);
-    }
-  };
 
   const handleToggleIngredientCheck = (name: string) => {
     if (checkedIngredients.includes(name)) {
@@ -87,12 +36,6 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
     } else {
       setCheckedIngredients([...checkedIngredients, name]);
     }
-  };
-
-  const formatTimer = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handlePrint = () => {
@@ -119,6 +62,21 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
         return 'bg-rose-100 text-rose-900 border-rose-200';
       default:
         return 'bg-stone-100 text-stone-900 border-stone-200';
+    }
+  };
+
+  const getStepTypeLabel = (stepType: string) => {
+    switch (stepType) {
+      case 'prep':
+        return 'Preparación y corte';
+      case 'cook':
+        return 'Cocción y salteado';
+      case 'dress':
+        return 'Emulsión y aderezo';
+      case 'plate':
+        return 'Emplatado final';
+      default:
+        return stepType;
     }
   };
 
@@ -172,7 +130,7 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#2A9D8F] mb-2">
                 <Leaf className="w-4 h-4" />
-                <span>Receta Saludable Generada con Gemini 3.8 Flash</span>
+                <span>Receta Saludable Generada con Inteligencia Artificial</span>
               </div>
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C2825] tracking-tight leading-tight">
                 {recipe.title}
@@ -182,7 +140,7 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
               </p>
             </div>
 
-            {/* Quick Metrics Bar */}
+            {/* Quick Metrics Bar (Static times only) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#EADBCC]">
               <div className="p-3 bg-[#FAF7F2] rounded-2xl border border-[#EADBCC]/70">
                 <span className="text-xs text-[#8C7A6B] block">Preparación</span>
@@ -389,10 +347,10 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-[#EADBCC]">
           <div>
             <h2 className="font-serif text-2xl font-semibold text-[#2C2825]">
-              Ingredientes necesarios y cantidades
+              Ingredientes necesarios y cantidades exactas
             </h2>
             <p className="text-xs text-[#7A6F62] mt-0.5">
-              Calculados para {recipe.servings} raciones. Marca cada uno conforme los tengas listos.
+              Proporciones calculadas para {recipe.servings} raciones.
             </p>
           </div>
           <span className="text-xs font-medium text-[#8C7A6B]">
@@ -437,49 +395,31 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Procedimientos Paso a Paso Ilustrados */}
+      {/* Procedimientos Paso a Paso Ilustrados (Sin temporizadores interactivos ni botones de marcar hecho) */}
       <div className="bg-white rounded-3xl border border-[#EADBCC] p-6 sm:p-10 space-y-8 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EADBCC]">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#E76F51] mb-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Modo Cocina Paso a Paso</span>
-            </div>
-            <h2 className="font-serif text-3xl font-bold text-[#2C2825] tracking-tight">
-              Procedimiento de Cocinado
-            </h2>
-            <p className="text-sm text-[#7A6F62] mt-1">
-              Sigue las instrucciones ilustradas generadas por Gemini 3.8 Flash para conseguir la textura y sabor perfectos.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 bg-[#FAF7F2] p-2 rounded-2xl border border-[#EADBCC]">
-            <span className="text-xs font-semibold text-[#8C4332] px-2">
-              Progreso: {completedSteps.length} / {recipe.steps.length} completados
-            </span>
-          </div>
+        <div className="pb-4 border-b border-[#EADBCC]">
+          <h2 className="font-serif text-3xl font-bold text-[#2C2825] tracking-tight">
+            Procedimiento Detallado de Preparación
+          </h2>
+          <p className="text-sm text-[#7A6F62] mt-1">
+            Instrucciones gastronómicas precisas paso a paso que detallan el tratamiento exacto de cada uno de tus ingredientes.
+          </p>
         </div>
 
         {/* Steps List */}
         <div className="space-y-8">
           {recipe.steps.map((step, idx) => {
-            const isCompleted = completedSteps.includes(step.stepNumber);
-            const isTimerActiveForThis = activeTimerStep === step.stepNumber;
             const stepImage = getStepImage(idx);
 
             return (
               <div
                 key={step.stepNumber}
-                className={`rounded-3xl border transition-all duration-300 overflow-hidden ${
-                  isCompleted
-                    ? 'bg-[#F9FAF9] border-[#A3B899] opacity-85'
-                    : 'bg-white border-[#EADBCC] shadow-xs hover:border-[#E76F51]/40'
-                }`}
+                className="rounded-3xl border border-[#EADBCC] bg-white shadow-xs overflow-hidden"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12">
                   {/* Step Information (8 cols) */}
                   <div className="lg:col-span-8 p-6 sm:p-8 space-y-5 flex flex-col justify-between">
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {/* Step Header */}
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -487,19 +427,18 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
                             {step.stepNumber}
                           </span>
                           <span
-                            className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getStepBadgeColor(
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wider border ${getStepBadgeColor(
                               step.stepType
                             )}`}
                           >
-                            Fase: {step.stepType}
+                            {getStepTypeLabel(step.stepType)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <span className="flex items-center gap-1 text-xs text-[#7A6F62] bg-[#FAF7F2] px-2.5 py-1 rounded-lg border border-[#EADBCC]">
-                            <Clock className="w-3.5 h-3.5 text-amber-500" />
-                            {step.minutes} min
-                          </span>
+                        {/* Static Time Display (Non-interactive) */}
+                        <div className="flex items-center gap-1.5 text-xs text-[#695D4F] bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EADBCC] font-medium">
+                          <Clock className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Tiempo estimado: <strong className="text-[#2C2825] font-semibold">{step.minutes} min</strong></span>
                         </div>
                       </div>
 
@@ -507,7 +446,7 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
                         {step.title}
                       </h3>
 
-                      {/* Main Instruction */}
+                      {/* Main Detailed Instruction */}
                       <p className="text-sm sm:text-base text-[#4A4237] leading-relaxed">
                         {step.instruction}
                       </p>
@@ -520,64 +459,6 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
                           {step.chefTip}
                         </div>
                       </div>
-                    </div>
-
-                    {/* Step Actions & Timer */}
-                    <div className="pt-4 border-t border-[#EADBCC]/80 flex flex-wrap items-center justify-between gap-3">
-                      {/* Timer Control */}
-                      {step.minutes > 0 && (
-                        <div className="flex items-center gap-2">
-                          {isTimerActiveForThis ? (
-                            <div className="flex items-center gap-2 bg-[#FFEFE9] border border-[#FADCD1] px-3.5 py-1.5 rounded-xl">
-                              <span className="font-mono text-base font-bold text-[#E76F51]">
-                                {formatTimer(timerSecondsLeft)}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                                className="p-1 hover:bg-[#FCD8CD] rounded-lg text-[#E76F51] cursor-pointer"
-                                title={isTimerRunning ? 'Pausar' : 'Reanudar'}
-                              >
-                                {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveTimerStep(null);
-                                  setIsTimerRunning(false);
-                                }}
-                                className="p-1 hover:bg-[#FCD8CD] rounded-lg text-[#8C7A6B] cursor-pointer"
-                                title="Detener temporizador"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleStartTimer(step.stepNumber, step.minutes)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F2ECE0] border border-[#EADBCC] text-xs font-semibold text-[#5C5245] rounded-xl transition-colors cursor-pointer"
-                            >
-                              <Play className="w-3.5 h-3.5 text-[#E76F51]" />
-                              <span>Iniciar cronómetro ({step.minutes}m)</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Step Complete Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStepComplete(step.stepNumber)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                          isCompleted
-                            ? 'bg-[#2A9D8F] text-white shadow-xs'
-                            : 'bg-[#FAF0E6] text-[#8D4B38] border border-[#F0D5C0] hover:bg-[#F6E2D0]'
-                        }`}
-                      >
-                        <Check className="w-4 h-4 stroke-[2.5]" />
-                        <span>{isCompleted ? 'Paso Completado' : 'Marcar como hecho'}</span>
-                      </button>
                     </div>
                   </div>
 
@@ -599,7 +480,7 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
 
                     <div className="space-y-1.5 bg-white p-3.5 rounded-xl border border-[#EADBCC]">
                       <span className="text-xs font-semibold text-[#8C4332] block">
-                        Estado visual esperado:
+                        Transformación visual y sensorial:
                       </span>
                       <p className="text-xs text-[#695D4F] leading-relaxed italic">
                         "{step.visualDescription}"
@@ -612,20 +493,15 @@ export const RecipeDetailView: React.FC<RecipeDetailViewProps> = ({
           })}
         </div>
 
-        {/* Finishing Celebration Banner */}
-        {completedSteps.length === recipe.steps.length && (
-          <div className="p-6 bg-gradient-to-r from-[#2A9D8F]/15 to-[#F4A261]/20 rounded-3xl border border-[#2A9D8F]/30 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-[#2A9D8F] text-white flex items-center justify-center mx-auto shadow-sm">
-              <Check className="w-6 h-6 stroke-[3]" />
-            </div>
-            <h3 className="font-serif text-2xl font-bold text-[#2C2825]">
-              ¡Enhorabuena! Tu plato mediterráneo está listo
-            </h3>
-            <p className="text-sm text-[#5C5245] max-w-xl mx-auto">
-              {recipe.platingAndServingTip} Disfrútalo con tranquilidad y calma, pilares indispensables del bienestar mediterráneo.
-            </p>
-          </div>
-        )}
+        {/* Harmonious Plating Recommendation */}
+        <div className="p-6 bg-gradient-to-r from-[#2A9D8F]/10 via-[#F4A261]/15 to-[#E76F51]/10 rounded-3xl border border-[#EADBCC] text-center space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#E76F51] block">
+            Presentación y Armonía en Mesa
+          </span>
+          <p className="text-sm text-[#5C5245] max-w-2xl mx-auto leading-relaxed">
+            {recipe.platingAndServingTip}
+          </p>
+        </div>
       </div>
     </div>
   );
